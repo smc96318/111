@@ -34,7 +34,7 @@ ATR_MULTIPLIER = 1.0
 SL_PADDING_ATR = 0.5
 
 # Killzone 定义 (UTC小时)
-KZ_LONDON = [7, 8, 9]
+KZ_LONDON = [7, 8, 9, 10]
 KZ_NY = [12, 13, 14, 15]
 
 # ==========================================
@@ -58,14 +58,19 @@ def send_telegram(message):
         "parse_mode": "HTML"
     }
 
-    try:
-        response = requests.post(url, data=data, timeout=10)
-        if response.status_code == 200:
-            print("[Telegram] 推送成功")
-        else:
-            print(f"[Telegram] 推送失败: {response.status_code}")
-    except Exception as e:
-        print(f"[Telegram] 推送异常: {e}")
+    for attempt in range(3):
+        try:
+            response = requests.post(url, data=data, timeout=10)
+            if response.status_code == 200:
+                print("[Telegram] 推送成功")
+                return
+            else:
+                print(f"[Telegram] 推送失败: {response.status_code}，第 {attempt + 1} 次尝试")
+        except Exception as e:
+            print(f"[Telegram] 推送异常: {e}，第 {attempt + 1} 次尝试")
+
+        # 重试前的退避等待
+        time.sleep(5 * (attempt + 1))
 
 # ==========================================
 # 时区工具
@@ -180,21 +185,25 @@ def check_structure(df):
 # ==========================================
 
 def fetch_ohlcv(symbol, timeframe, limit=300):
-    """从 Binance 获取 K线数据"""
+    """从 Binance 获取 K线数据（带重试）"""
     exchange = ccxt.binance({
         'enableRateLimit': True,
         'options': {'defaultType': 'future'}
     })
 
-    try:
-        bars = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
-        df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        df.set_index('timestamp', inplace=True)
-        return df
-    except Exception as e:
-        print(f"[错误] 获取数据失败: {e}")
-        return None
+    for attempt in range(3):
+        try:
+            bars = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
+            df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+            df.set_index('timestamp', inplace=True)
+            return df
+        except Exception as e:
+            print(f"[错误] 获取数据失败: {e}，第 {attempt + 1} 次尝试")
+            time.sleep(5 * (attempt + 1))
+
+    print("[错误] 获取数据失败，已超出重试次数")
+    return None
 
 # ==========================================
 # 主扫描任务
