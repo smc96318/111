@@ -1,0 +1,19 @@
+# ===========================
+# SMC Live Monitor V9.1 - Dependencies
+# ===========================
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Exchange API
+ccxt>=4.0.0
+
+# Scheduling
+schedule>=1.2.0
+
+# HTTP Requests (Telegram API)
+requests>=2.31.0
+
+# Environment Variables
+python-dotenv>=1.0.0
