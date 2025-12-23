@@ -298,13 +298,13 @@ def heartbeat():
 def schedule_jobs():
     """设置定时任务"""
     # 每小时的 :00:05, :15:05, :30:05, :45:05 执行
-    schedule.every().hour.at(":00:05").do(job)
-    schedule.every().hour.at(":15:05").do(job)
-    schedule.every().hour.at(":30:05").do(job)
-    schedule.every().hour.at(":45:05").do(job)
+    schedule.every().hour.at("00:05").do(job)
+    schedule.every().hour.at("15:05").do(job)
+    schedule.every().hour.at("30:05").do(job)
+    schedule.every().hour.at("45:05").do(job)
 
     # 每小时 :00:00 发送心跳
-    schedule.every().hour.at(":00:00").do(heartbeat)
+    schedule.every().hour.at("00:00").do(heartbeat)
 
 # ==========================================
 # 主程序
